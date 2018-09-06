@@ -21,12 +21,14 @@ namespace OCRApp.Samples.MagickNET
     public static void CommandLineOptionDefine()
     {
       // Read image from file
-      using (MagickImage image = new MagickImage(SampleFiles.SnakewarePng))
+      using (IMagickImage image = new MagickImage(SampleFiles.SnakewarePng))
       {
+      	var snakeware = new DdsWriteDefines();
+      	snakeware.Compression = ImageMagick.Defines.DdsCompression.Dxt1;
         // Tells the dds coder to use dxt1 compression when writing the image
-        image.SetDefine(MagickFormat.Dds, "compression", "dxt1");
+        //image.MagickSettings.SetDefine(MagickFormat.Dds, "compression", "dxt1");
         // Save image as dds file
-        image.Write(SampleFiles.OutputDirectory + "Snakeware.dds");
+        image.Write(SampleFiles.OutputDirectory + "Snakeware.dds", snakeware);
       }
     }
 
@@ -37,7 +39,7 @@ namespace OCRApp.Samples.MagickNET
       settings.SetDefine(MagickFormat.Jpeg, "size", "32x32");
 
       // Read image from file
-      using (MagickImage image = new MagickImage(SampleFiles.SnakewareJpg))
+      using (IMagickImage image = new MagickImage(SampleFiles.SnakewareJpg))
       {
         // Create thumnail that is 32 pixels wide and 32 pixels high
         image.Thumbnail(32, 32);

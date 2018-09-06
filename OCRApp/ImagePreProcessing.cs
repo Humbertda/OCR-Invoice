@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
+using System.Net.Mime;
 using AForge.Imaging;
 using AForge.Imaging.Filters;
 using System.Drawing.Imaging;
@@ -46,7 +46,7 @@ namespace OCRApp
 
             rotatedImage.Save(ImageDirectory + ".tif");
            
-            using (MagickImage image = new MagickImage(ImageDirectory))
+            using (IMagickImage image = new MagickImage(ImageDirectory))
             {
                 TextCleanerScript Cleaner = new TextCleanerScript();
 
@@ -66,26 +66,26 @@ namespace OCRApp
                 var a = WhiteB.GetLargestAreaP(image);
                 
                 WhiteboardScript AoutoTrim = new WhiteboardScript();
-                //AoutoTrim.SetCoordinates(new Coordinate(01, 53), new Coordinate(313, 31),
-                //new Coordinate(331, 218), new Coordinate(218, 200));
+                //AoutoTrim.SetCoordinates(new PointD(01, 53), new PointD(313, 31),
+                //new PointD(331, 218), new PointD(218, 200));
                 //AoutoTrim.Enhance = WhiteboardEnhancements.Both;
                 //AoutoTrim.FilterSize = 25; // filter to clean up background;
                 //AoutoTrim.FilterOffset = (Percentage)3; //filter in percent to reduce noise
                 //AoutoTrim.Saturation = (Percentage)200;  // high value to Saturation
-                //AoutoTrim.SetCoordinates(new Coordinate(a[0].X, a[0].Y), new Coordinate(a[1].X, a[1].Y),
-                //new Coordinate(a[2].X, a[2].Y), new Coordinate(a[3].X, a[3].Y));
+                //AoutoTrim.SetCoordinates(new PointD(a[0].X, a[0].Y), new PointD(a[1].X, a[1].Y),
+                //new PointD(a[2].X, a[2].Y), new PointD(a[3].X, a[3].Y));
                 var new2mage2 = AoutoTrim.Execute(image);
               //  new2mage2.Deskew((Percentage)2);
-                AoutoTrim.SetCoordinates(new Coordinate(13, 3), new Coordinate(342, 6),
-                new Coordinate(331, 467), new Coordinate(38, 482));
+                AoutoTrim.SetPointDs(new PointD(13, 3), new PointD(342, 6),
+                new PointD(331, 467), new PointD(38, 482));
                 AoutoTrim.Enhance = WhiteboardEnhancements.Both;
              
                
-                                           //  new2mage2.Density= new PointD(300, 300);
-new2mage2= WhiteB.Execute(new2mage2);
-                new2mage2 = Cleaner.Execute(new2mage2);
+             //  new2mage2.Density= new PointD(300, 300);
+				new2mage2= WhiteB.Execute(new2mage2);
+                new2mage2= Cleaner.Execute(new2mage2);
                 
-                new2mage2.Density = new PointD(600, 600);
+                new2mage2.Density = new Density(600, 600);
                 new2mage2.Write(EnhancedImageDir + Path.GetFileName(ImageDirectory)
                     + "2" + ".tif");
                 string dir12 = (EnhancedImageDir + Path.GetFileName(ImageDirectory)
@@ -98,7 +98,7 @@ new2mage2= WhiteB.Execute(new2mage2);
 
 
 
-                WhiteB.BorderColorLocation = new Coordinate(10, 10);
+                WhiteB.BorderColorLocation = new PointD(10, 10);
                 
                
                 //AoutoTrim.SetCoordinates(ad);
@@ -146,9 +146,9 @@ new2mage2= WhiteB.Execute(new2mage2);
 
             MagickNET.Initialize(@"C:\OCR\File\");
             // Read first frame of gif image
-            using (MagickImage image = new MagickImage("Snakeware.gif"))
+            using (IMagickImage image = new MagickImage("Snakeware.gif"))
             {
-                image.Density = new PointD(600, 600);
+                image.Density = new Density(600, 600);
                 image.AutoLevel();
                 image.Negate();
                 image.AdaptiveThreshold(30, 30, 10);
@@ -165,7 +165,7 @@ new2mage2= WhiteB.Execute(new2mage2);
             using (MemoryStream memStream = new MemoryStream())
             {
                 // Create image that is completely purple and 800x600
-                using (MagickImage image = new MagickImage("xc:purple", settings))
+                using (IMagickImage image = new MagickImage("xc:purple", settings))
                 {
                     // Sets the output format to png
                     image.Format = MagickFormat.Png;

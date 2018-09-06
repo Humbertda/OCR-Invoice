@@ -99,8 +99,8 @@ namespace OCRApp.Samples.MagickNET
       Console.WriteLine(info.Height);
       Console.WriteLine(info.ColorSpace);
       Console.WriteLine(info.Format);
-      Console.WriteLine(info.ResolutionX);
-      Console.WriteLine(info.ResolutionY);
+      Console.WriteLine(info.Quality);
+     // Console.WriteLine(info.ResolutionY);
     }
 
     public static void ReadImageWithMultipleFrames()
@@ -126,7 +126,7 @@ namespace OCRApp.Samples.MagickNET
 
       // Read pdf with custom density.
       MagickReadSettings settings = new MagickReadSettings();
-      settings.Density = new PointD(144, 144);
+      settings.Density = new Density(144, 144);
 
       using (MagickImageCollection collection = new MagickImageCollection(SampleFiles.SnakewarePdf, settings))
       {

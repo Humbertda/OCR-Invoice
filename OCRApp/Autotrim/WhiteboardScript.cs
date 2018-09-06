@@ -5,25 +5,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Globalization;
+using System.Drawing;
+using Tesseract.Interop;
 
 namespace OCRApp.Autotrim
 {
     public sealed class WhiteboardScript
     {
-        private Coordinate[] _Coords;
+        private PointD[] _Coords;
         private double _Height;
         private double _Width;
 
-        private void ApplyWhiteBalance(MagickImage image)
+        private void ApplyWhiteBalance(IMagickImage image)
         {
-            using (MagickImage mask = image.Clone())
+            using (IMagickImage mask = image.Clone())
             {
                 mask.ColorSpace = ColorSpace.HSB;
                 mask.Negate(Channels.Green);
 
-                using (MagickImage newMask = mask.Separate(Channels.Green).First())
+                using (IMagickImage newMask = mask.Separate(Channels.Green).First())
                 {
-                    using (MagickImage maskBlue = mask.Separate(Channels.Blue).First())
+                    using (IMagickImage maskBlue = mask.Separate(Channels.Blue).First())
                     {
                         newMask.Composite(maskBlue, CompositeOperator.Multiply);
                     }
@@ -37,14 +39,14 @@ namespace OCRApp.Autotrim
                     double greenRatio = GetRatio(image, Channels.Green, newMask, maskMean);
                     double blueRatio = GetRatio(image, Channels.Blue, newMask, maskMean);
 
-                    ColorMatrix matrix = new ColorMatrix(3, redRatio, 0, 0, 0, greenRatio, 0, 0, 0, blueRatio);
+                    MagickColorMatrix matrix = new MagickColorMatrix (3, redRatio, 0, 0, 0, greenRatio, 0, 0, 0, blueRatio);
 
                     image.ColorMatrix(matrix);
                 }
             }
         }
 
-        private void CalculateWidthAndHeight(MagickImage image)
+        private void CalculateWidthAndHeight(IMagickImage image)
         {
             if (_Coords != null)
                 CalculateWidthAndHeightWithCoords();
@@ -54,15 +56,15 @@ namespace OCRApp.Autotrim
                 CalculateWidthAndHeightWithMagnification(image);
         }
 
-        private void CheckSettings(MagickImage image)
+        private void CheckSettings(IMagickImage image)
         {
             if (_Coords == null)
                 return;
 
-            CheckCoordinate(image, "topLeft", _Coords[0]);
-            CheckCoordinate(image, "topRight", _Coords[1]);
-            CheckCoordinate(image, "bottomRight", _Coords[2]);
-            CheckCoordinate(image, "bottomLeft", _Coords[3]);
+            CheckPointD(image, "topLeft", _Coords[0]);
+            CheckPointD(image, "topRight", _Coords[1]);
+            CheckPointD(image, "bottomRight", _Coords[2]);
+            CheckPointD(image, "bottomLeft", _Coords[3]);
         }
 
         private void CalculateWidthAndHeightWithCoords()
@@ -96,7 +98,7 @@ namespace OCRApp.Autotrim
             double ccx = (m1x + m2x + m3x + m4x) / 4;
             double ccy = (m1y + m2y + m3y + m4y) / 4;
 
-            // convert to proper x,y coordinates relative to center
+            // convert to proper x,y PointDs relative to center
             m1x = m1x - ccx;
             m1y = ccy - m1y;
             m2x = m2x - ccx;
@@ -116,7 +118,7 @@ namespace OCRApp.Autotrim
             return aspect;
         }
 
-        private void CalculateWidthAndHeightWithDimensions(MagickImage image)
+        private void CalculateWidthAndHeightWithDimensions(IMagickImage image)
         {
             double aspect = image.Width / image.Height;
 
@@ -147,14 +149,14 @@ namespace OCRApp.Autotrim
             }
         }
 
-        private void CalculateWidthAndHeightWithMagnification(MagickImage image)
+        private void CalculateWidthAndHeightWithMagnification(IMagickImage image)
         {
             double magnification = GetMagnification();
             _Width = image.Width * magnification;
             _Height = image.Height * magnification;
         }
 
-        private static void CheckCoordinate(MagickImage image, string paramName, Coordinate coord)
+        private static void CheckPointD(IMagickImage image, string paramName, PointD coord)
         {
             if (coord.X < 0 || coord.X > image.Width)
                 throw new ArgumentOutOfRangeException(paramName);
@@ -163,11 +165,11 @@ namespace OCRApp.Autotrim
                 throw new ArgumentOutOfRangeException(paramName);
         }
 
-        private void CopyOpacity(MagickImage image)
+        private void CopyOpacity(IMagickImage image)
         {
             image.Alpha(AlphaOption.Off);
 
-            using (MagickImage gray = image.Clone())
+            using (IMagickImage gray = image.Clone())
             {
                 gray.ColorSpace = ColorSpace.Gray;
                 gray.Negate();
@@ -179,12 +181,12 @@ namespace OCRApp.Autotrim
                     gray.Level(Threshold.Value, new Percentage(100));
                 }
                 image.Composite(gray, CompositeOperator.CopyAlpha);
-                image.Opaque(MagickColor.Transparent, BackgroundColor);
+                image.Opaque(MagickColors.Transparent, BackgroundColor);
                 image.Alpha(AlphaOption.Off);
             }
         }
 
-        private void DistortImage(MagickImage input, MagickImage image)
+        private void DistortImage(IMagickImage input, IMagickImage image)
         {
             if (_Coords != null)
                 DistortImageWithCoords(image);
@@ -194,7 +196,7 @@ namespace OCRApp.Autotrim
                 DistortImageWithMagnification(input, image);
         }
 
-        private void DistortImageWithCoords(MagickImage image)
+        private void DistortImageWithCoords(IMagickImage image)
         {
             SetDistortViewport(image, 0, 0);
 
@@ -212,7 +214,7 @@ namespace OCRApp.Autotrim
             }
         }
 
-        private void DistortImageWithDimensions(MagickImage input, MagickImage image)
+        private void DistortImageWithDimensions(IMagickImage input, IMagickImage image)
         {
             double delX = (input.Width - _Width) / 2;
             double delY = (input.Height - _Height) / 2;
@@ -226,7 +228,7 @@ namespace OCRApp.Autotrim
             image.Distort(DistortMethod.ScaleRotateTranslate, cx, cy, magX, magy, 0);
         }
 
-        private void DistortImageWithMagnification(MagickImage input, MagickImage image)
+        private void DistortImageWithMagnification(IMagickImage input, IMagickImage image)
         {
             double delX = (input.Width - _Width) / 2;
             double delY = (input.Height - _Height) / 2;
@@ -235,7 +237,7 @@ namespace OCRApp.Autotrim
             image.Distort(DistortMethod.ScaleRotateTranslate, Magnification.Value, 0);
         }
 
-        private void EnhanceImage(MagickImage image)
+        private void EnhanceImage(IMagickImage image)
         {
             if (Enhance == WhiteboardEnhancements.None)
                 return;
@@ -252,15 +254,15 @@ namespace OCRApp.Autotrim
             return Magnification.HasValue ? Magnification.Value : 1;
         }
 
-        private static double GetMean(MagickImage image)
+        private static double GetMean(IMagickImage image)
         {
             double mean = image.Statistics().GetChannel(PixelChannel.Composite).Mean;
             return mean * 100 / Quantum.Max;
         }
 
-        private static double GetRatio(MagickImage image, Channels channel, MagickImage mask, double maskMean)
+        private static double GetRatio(IMagickImage image, Channels channel, IMagickImage mask, double maskMean)
         {
-            using (MagickImage channelImage = image.Separate(channel).First())
+            using (IMagickImage channelImage = image.Separate(channel).First())
             {
                 channelImage.Composite(mask, CompositeOperator.Multiply);
                 double channelMean = GetMean(channelImage);
@@ -269,7 +271,7 @@ namespace OCRApp.Autotrim
             }
         }
 
-        private void Modulate(MagickImage image)
+        private void Modulate(IMagickImage image)
         {
             if (Saturation == (Percentage)100)
                 return;
@@ -277,7 +279,7 @@ namespace OCRApp.Autotrim
             image.Modulate((Percentage)100, Saturation);
         }
 
-        private void SetDistortViewport(MagickImage image, int x, int y)
+        private void SetDistortViewport(IMagickImage image, int x, int y)
         {
             image.VirtualPixelMethod = VirtualPixelMethod.White;
 
@@ -285,7 +287,7 @@ namespace OCRApp.Autotrim
             image.SetArtifact("distort:viewport", viewport);
         }
 
-        private void Sharpen(MagickImage image)
+        private void Sharpen(IMagickImage image)
         {
             if (!SharpeningAmount.HasValue || SharpeningAmount <= 0)
                 return;
@@ -305,6 +307,8 @@ namespace OCRApp.Autotrim
         /// The width-to-height aspect ratio of actual whiteboard. Typical values are: (2:1), (3:2)
         /// and (4:3). The default is computed automatically.
         /// </summary>
+        /// 
+        
         public PointD? AspectRatio
         {
             get;
@@ -325,7 +329,7 @@ namespace OCRApp.Autotrim
         /// The desired dimension(s) of the output image. Choices are: WIDTH, xHEIGHT or WIDTHxHEIGHT;
         /// if either of the first two options are selected, then the other dimension will be computed
         /// from the aspect ratio and magnify will be ignored. If the latter option is selected, then
-        /// both aspect and magnify will be ignored. If no coordinates are supplied, then the input
+        /// both aspect and magnify will be ignored. If no PointDs are supplied, then the input
         /// image aspect ratio will be use. The default is to ignore dimensions and use the aspect
         /// and magnify.
         /// </summary>
@@ -358,9 +362,9 @@ namespace OCRApp.Autotrim
         /// <summary>
         /// The output image magnification (or minification) factor. Values larger than 1 will
         /// magnify. Values less than 1 will minify. The default is 1 and will produce an output whose
-        /// height is the length of the left edge as defined by the supplied coordinates and whose
+        /// height is the length of the left edge as defined by the supplied PointDs and whose
         /// width=height*aspect. A value of 2 will be twice that size and a value of 0.5 will be half
-        /// that size. If no coordinates are supplied, then the width and height will be those of the
+        /// that size. If no PointDs are supplied, then the width and height will be those of the
         /// input image multiplied by the magnify factor.
         /// </summary>
         public double? Magnification
@@ -426,7 +430,7 @@ namespace OCRApp.Autotrim
         /// picture must be supplied in order to correct the perspective.
         /// </summary>
         /// <param name="input">The image to execute the script on.</param>
-        public MagickImage Execute(MagickImage input)
+        public IMagickImage Execute(IMagickImage input)
         {
             if (input == null)
                 throw new ArgumentNullException("input");
@@ -434,7 +438,7 @@ namespace OCRApp.Autotrim
             CheckSettings(input);
             CalculateWidthAndHeight(input);
 
-            MagickImage output = input.Clone();
+            IMagickImage output = input.Clone();
             //EnhanceImage(output);
             DistortImage(input, output);
             CopyOpacity(output);
@@ -459,17 +463,17 @@ namespace OCRApp.Autotrim
         }
 
         /// <summary>
-        /// Sets the four x,y coordinates of the corner of the whiteboard. The default will be the
+        /// Sets the four x,y PointDs of the corner of the whiteboard. The default will be the
         /// four corners of the input image and thus will not trim any existing border or area outside
         /// the whiteboard, nor will it correct any perspective distortion.
         /// </summary>
-        /// <param name="topLeft">Top left coordinate</param>
-        /// <param name="topRight">Top right coordinate</param>
-        /// <param name="bottomLeft">Bottom left coordinate</param>
-        /// <param name="bottomRight">Bottom right coordinate</param>
-        public void SetCoordinates(Coordinate topLeft, Coordinate topRight, Coordinate bottomRight, Coordinate bottomLeft)
+        /// <param name="topLeft">Top left PointD</param>
+        /// <param name="topRight">Top right PointD</param>
+        /// <param name="bottomLeft">Bottom left PointD</param>
+        /// <param name="bottomRight">Bottom right PointD</param>
+        public void SetPointDs(PointD topLeft, PointD topRight, PointD bottomRight, PointD bottomLeft)
         {
-            _Coords = new Coordinate[] { topLeft, topRight, bottomRight, bottomLeft };
+            _Coords = new PointD[] { topLeft, topRight, bottomRight, bottomLeft };
         }
     }
 }

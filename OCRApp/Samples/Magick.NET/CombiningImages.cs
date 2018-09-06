@@ -23,15 +23,15 @@ namespace OCRApp.Samples.MagickNET
       using (MagickImageCollection images = new MagickImageCollection())
       {
         // Add the first image
-        MagickImage first = new MagickImage(SampleFiles.SnakewarePng);
+        IMagickImage first = new MagickImage(SampleFiles.SnakewarePng);
         images.Add(first);
 
         // Add the second image
-        MagickImage second = new MagickImage(SampleFiles.SnakewarePng);
+        IMagickImage second = new MagickImage(SampleFiles.SnakewarePng);
         images.Add(second);
 
         // Create a mosaic from both images
-        using (MagickImage result = images.Mosaic())
+        using (IMagickImage result = images.Mosaic())
         {
           // Save the result
           result.Write(SampleFiles.OutputDirectory + "Mosaic.png");

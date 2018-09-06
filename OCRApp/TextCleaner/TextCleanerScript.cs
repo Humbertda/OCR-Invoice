@@ -9,7 +9,7 @@ namespace OCRApp.TextCleaner
 {
      class TextCleanerScript
     {
-        private void AdaptiveBlurImage(MagickImage image)
+        private void AdaptiveBlurImage(IMagickImage image)
         {
             if (AdaptiveBlur == 0.0)
                 return;
@@ -45,7 +45,7 @@ namespace OCRApp.TextCleaner
             }
         }
 
-        private void ConvertToGrayscale(MagickImage image)
+        private void ConvertToGrayscale(IMagickImage image)
         {
             if (!MakeGray)
                 return;
@@ -54,7 +54,7 @@ namespace OCRApp.TextCleaner
             image.ColorType = ColorType.Grayscale;
         }
 
-        private void CropImage(MagickImage image)
+        private void CropImage(IMagickImage image)
         {
             if (!CropOffset.IsSet)
                 return;
@@ -64,11 +64,11 @@ namespace OCRApp.TextCleaner
 
             image.Crop(new MagickGeometry(CropOffset.Left, CropOffset.Top, width, height));
         }
-        private void unperspective(MagickImage image)
+        private void unperspective(IMagickImage image)
         {
             
         }
-        private void distor(MagickImage image)
+        private void distor(IMagickImage image)
         {
 
             
@@ -77,7 +77,7 @@ namespace OCRApp.TextCleaner
 
         }
 
-        private void EnhanceImage(MagickImage image)
+        private void EnhanceImage(IMagickImage image)
         {
             if (Enhance == TextCleanerEnhance.Stretch)
                 image.ContrastStretch((Percentage)0);
@@ -85,7 +85,7 @@ namespace OCRApp.TextCleaner
                 image.Normalize();
         }
 
-        private void PadImage(MagickImage image)
+        private void PadImage(IMagickImage image)
         {
             if (Padding == 0)
                 return;
@@ -95,9 +95,9 @@ namespace OCRApp.TextCleaner
             image.Border(Padding);
         }
        
-        private void RemoveNoise(MagickImage image)
+        private void RemoveNoise(IMagickImage image)
         {
-            using (MagickImage second = image.Clone())
+            using (IMagickImage second = image.Clone())
             {
                 second.ColorSpace = ColorSpace.Gray;
                 second.Negate();
@@ -113,11 +113,11 @@ namespace OCRApp.TextCleaner
                 image.Composite(second, CompositeOperator.CopyAlpha);
             }
 
-            image.Opaque(MagickColor.Transparent, BackgroundColor);
+            image.Opaque(MagickColors.Transparent, BackgroundColor);
             image.Alpha(AlphaOption.Off);
         }
 
-        private void RotateImage(MagickImage image)
+        private void RotateImage(IMagickImage image)
         {
             if ((Layout == TextCleanerLayout.Portrait && image.Height < image.Width) ||
               (Layout == TextCleanerLayout.Landscape && image.Height > image.Width))
@@ -129,7 +129,7 @@ namespace OCRApp.TextCleaner
             }
         }
 
-        private void SaturateImage(MagickImage image)
+        private void SaturateImage(IMagickImage image)
         {
             if (Saturation == (Percentage)100)
                 return;
@@ -137,7 +137,7 @@ namespace OCRApp.TextCleaner
             image.Modulate((Percentage)100, Saturation, (Percentage)100);
         }
 
-        private void SharpenImage(MagickImage image)
+        private void SharpenImage(IMagickImage image)
         {
             if (Sharpen == 0.0)
                 return;
@@ -145,7 +145,7 @@ namespace OCRApp.TextCleaner
             image.Sharpen(0.0, Sharpen);
         }
 
-        private void TrimImage(MagickImage result)
+        private void TrimImage(IMagickImage result)
         {
             if (!Trim)
                 return;
@@ -154,7 +154,7 @@ namespace OCRApp.TextCleaner
             result.RePage();
         }
 
-        private void UnrotateImage(MagickImage image)
+        private void UnrotateImage(IMagickImage image)
         {
             if (!Unrotate)
                 return;
@@ -321,14 +321,14 @@ namespace OCRApp.TextCleaner
         /// Processses a scanned document of text to clean the text background and enhance the text.
         /// </summary>
         /// <param name="input">The image to execute the script on.</param>
-        public MagickImage Execute(MagickImage input)
+        public IMagickImage Execute(IMagickImage input)
         {
             if (input == null)
                 throw new ArgumentNullException("input");
 
             CheckSettings();
 
-            MagickImage output = input.Clone();
+            IMagickImage output = input.Clone();
             RotateImage(output);
             
             CropImage(output);

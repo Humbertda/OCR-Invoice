@@ -4,13 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ImageMagick;
+using AForge.Imaging.Filters;
+using AForge.Imaging;
+using AForge.Math;
+using System.Drawing;
+using System.Drawing.Imaging;
+using Ghostscript;
+using OCRApp.TextCleaner;
+
 namespace OCRApp.Autotrim
 {
     /// <summary>
     /// Automatically trim a (nearly) uniform color border around an image. If the image is rotated,
     /// one can trim to the bounding box around the image area or alternately trim to the maximum
     /// central area that contains no border pixels. The excess border does not have to completely
-    /// surround the image. It may be only on one side. However, one must identify a coordinate
+    /// surround the image. It may be only on one side. However, one must identify a PointD
     /// within the border area for the algorithm to extract the base border color and also specify
     /// a fuzz value when the border color is not uniform. For simple border trimming of a normally
     /// oriented image or the bounding box of a rotated image, you may err somewhat towards larger
@@ -40,27 +48,27 @@ namespace OCRApp.Autotrim
             }
         }
 
-        private void Crop(MagickImage image, MagickGeometry area)
+        private void Crop(IMagickImage image, MagickGeometry area)
         {
             ShiftGeometry(area);
             image.Crop(area.X, area.Y, area.Width, area.Height);
             image.RePage();
         }
 
-        private MagickColor GetBorderColor(MagickImage image)
+        private MagickColor GetBorderColor(IMagickImage image)
         {
-            using (PixelCollection pixels = image.GetReadOnlyPixels())
+            using (IPixelCollection pixels = image.GetPixels())
             {
                 return pixels.GetPixel((int)BorderColorLocation.X, (int)BorderColorLocation.Y).ToColor();
             }
         }
 
-        public List<Coordinate> GetLargestAreaP(MagickImage image)
+        public List<PointD> GetLargestAreaP(IMagickImage image)
         {
             Line[] points = new Line[4];
-            List<Coordinate> cords = new List<Coordinate>();
+            List<PointD> cords = new List<PointD>();
             //image.CannyEdge();
-            using (PixelCollection pixels = image.GetReadOnlyPixels())
+            using (IPixelCollection pixels = image.GetPixels())
             {
                 Line line = new Line(0, 0);
 
@@ -132,18 +140,18 @@ namespace OCRApp.Autotrim
             geometry = TestGeometry(geometry, points[0], points[2]);
             geometry = TestGeometry(geometry, points[1], points[3]);
 
-            cords.Add(new Coordinate(points[0].X1, points[0].Y));
-            cords.Add(new Coordinate(points[1].X1, points[1].Y));
-            cords.Add(new Coordinate(points[2].X1, points[2].Y));
-            cords.Add(new Coordinate(points[3].X1, points[3].Y));
+            cords.Add(new PointD(points[0].X1, points[0].Y));
+            cords.Add(new PointD(points[1].X1, points[1].Y));
+            cords.Add(new PointD(points[2].X1, points[2].Y));
+            cords.Add(new PointD(points[3].X1, points[3].Y));
             return cords;
         }
-        public MagickGeometry GetLargestArea(MagickImage image)
+        public MagickGeometry GetLargestArea(IMagickImage image)
         {
             Line[] points = new Line[4];
-            List<Coordinate> cords = new List<Coordinate>();
+            List<PointD> cords = new List<PointD>();
             //image.CannyEdge();
-            using (PixelCollection pixels = image.GetReadOnlyPixels())
+            using (IPixelCollection pixels = image.GetPixels())
             {
                 Line line = new Line(0, 0);
 
@@ -215,14 +223,14 @@ namespace OCRApp.Autotrim
             geometry = TestGeometry(geometry, points[0], points[2]);
             geometry = TestGeometry(geometry, points[1], points[3]);
 
-            cords.Add(new Coordinate(points[0].X2, points[0].Y));
-            cords.Add(new Coordinate(points[1].X2, points[1].Y));
-            cords.Add(new Coordinate(points[2].X2, points[2].Y));
-            cords.Add(new Coordinate(points[3].X2, points[3].Y));
+            cords.Add(new PointD(points[0].X2, points[0].Y));
+            cords.Add(new PointD(points[1].X2, points[1].Y));
+            cords.Add(new PointD(points[2].X2, points[2].Y));
+            cords.Add(new PointD(points[3].X2, points[3].Y));
             return geometry;
         }
 
-        private void ExecuteInnerTrim(MagickImage image)
+        private void ExecuteInnerTrim(IMagickImage image)
         {
             MagickGeometry area = GetLargestArea(image);
 
@@ -241,7 +249,7 @@ namespace OCRApp.Autotrim
             }
         }
 
-        private void ExecuteOuterTrim(MagickImage image)
+        private void ExecuteOuterTrim(IMagickImage image)
         {
             image.BackgroundColor = _BorderColor;
             image.ColorFuzz = ColorFuzz;
@@ -253,7 +261,7 @@ namespace OCRApp.Autotrim
             Crop(image, geometry);
         }
 
-        private bool IsBorderColor(PixelCollection pixels, int x, int y)
+        private bool IsBorderColor(IPixelCollection pixels, int x, int y)
         {
             MagickColor color = pixels.GetPixel(x, y).ToColor();
             return color.FuzzyEquals(_BorderColor, ColorFuzz);
@@ -308,7 +316,7 @@ namespace OCRApp.Autotrim
         /// <summary>
         /// Any location within the border area for the algorithm to find the base border color.
         /// </summary>
-        public Coordinate BorderColorLocation
+        public PointD BorderColorLocation
         {
             get;
             set;
@@ -348,12 +356,12 @@ namespace OCRApp.Autotrim
         /// Automatically unrotates a rotated image and trims the surrounding border.
         /// </summary>
         /// <param name="input">The image to execute the script on.</param>
-        public MagickImage Execute(MagickImage input)
+        public IMagickImage Execute(IMagickImage input)
         {
             if (input == null)
                 throw new ArgumentNullException("input");
 
-            MagickImage output = input.Clone();
+            IMagickImage output = input.Clone();
             _BorderColor = GetBorderColor(output);
 
             if (InnerTrim)
@@ -369,7 +377,7 @@ namespace OCRApp.Autotrim
         /// </summary>
         public void Reset()
         {
-            BorderColorLocation = new Coordinate(0, 0);
+            BorderColorLocation = new PointD(0, 0);
             ColorFuzz = (Percentage)0;
             InnerTrim = false;
             PixelShift = new AutotrimPixelShift();

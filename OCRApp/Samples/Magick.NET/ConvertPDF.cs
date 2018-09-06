@@ -29,7 +29,7 @@ namespace OCRApp.Samples.MagickNET
     {
       MagickReadSettings settings = new MagickReadSettings();
       // Settings the density to 300 dpi will create an image with a better quality
-      settings.Density = new PointD(300, 300);
+      settings.Density = new Density(300, 300);
 
       using (MagickImageCollection images = new MagickImageCollection())
       {
@@ -37,7 +37,7 @@ namespace OCRApp.Samples.MagickNET
         images.Read(SampleFiles.SnakewarePdf, settings);
 
         int page = 1;
-        foreach (MagickImage image in images)
+        foreach (IMagickImage image in images)
         {
           // Write page to file that contains the page number
           image.Write(SampleFiles.OutputDirectory + "Snakeware.Page" + page + ".png");
@@ -53,7 +53,7 @@ namespace OCRApp.Samples.MagickNET
     {
       MagickReadSettings settings = new MagickReadSettings();
       // Settings the density to 300 dpi will create an image with a better quality
-      settings.Density = new PointD(300, 300);
+      settings.Density = new Density(300, 300);
 
       using (MagickImageCollection images = new MagickImageCollection())
       {
@@ -61,14 +61,14 @@ namespace OCRApp.Samples.MagickNET
         images.Read(SampleFiles.SnakewarePdf, settings);
 
         // Create new image that appends all the pages horizontally
-        using (MagickImage horizontal = images.AppendHorizontally())
+        using (IMagickImage horizontal = images.AppendHorizontally())
         {
           // Save result as a png
           horizontal.Write(SampleFiles.OutputDirectory + "Snakeware.horizontal.png");
         }
 
         // Create new image that appends all the pages horizontally
-        using (MagickImage vertical = images.AppendVertically())
+        using (IMagickImage vertical = images.AppendVertically())
         {
           // Save result as a png
           vertical.Write(SampleFiles.OutputDirectory + "Snakeware.vertical.png");
@@ -93,7 +93,7 @@ namespace OCRApp.Samples.MagickNET
     public static void CreatePDFFromSingleImage()
     {
       // Read image from file
-      using (MagickImage image = new MagickImage(SampleFiles.SnakewareJpg))
+      using (IMagickImage image = new MagickImage(SampleFiles.SnakewareJpg))
       {
         // Create pdf file with a single page
         image.Write(SampleFiles.OutputDirectory + "Snakeware.pdf");
