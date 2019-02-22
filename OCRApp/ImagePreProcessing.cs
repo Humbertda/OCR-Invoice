@@ -25,9 +25,13 @@ namespace OCRApp
             // convert - density 600 input.pdf output.tif;
             //System.Drawing.Image SelectedImage = new System.Drawing.Image();
             DirectoryInfo EnhancedImageDir = new DirectoryInfo(@"C:\OCR\EnhancedImage\");
-            Bitmap orgimg = (Bitmap)Bitmap.FromFile(ImageDirectory);
-            Bitmap bitmap = (Bitmap)Bitmap.FromFile(ImageDirectory);
-            Bitmap image2 = Grayscale.CommonAlgorithms.BT709.Apply(bitmap);
+            Bitmap orgimg = (Bitmap)Bitmap.FromFile(ImageDirectory, true);
+            //BitMap bitmap = orgimg.Clone();
+            Bitmap bitmap = (Bitmap)Bitmap.FromFile(ImageDirectory, true);
+            //Grayscale filter = new Grayscale( 0.2125, 0.7154, 0.0721 );
+			// apply the filter
+			//Bitmap bitmap = filter.Apply( orgimg );
+            //Bitmap image2 = Grayscale.CommonAlgorithms.BT709.Apply(bitmap);
             
             
             Rectangle rec = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
@@ -50,42 +54,40 @@ namespace OCRApp
             {
                 TextCleanerScript Cleaner = new TextCleanerScript();
 
-               // Cleaner.FilterSize = 12; // filter to clean up background;
-               // Cleaner.FilterOffset = (Percentage)3; //filter in percent to reduce noise
-               // Cleaner.Saturation = (Percentage)200;  // high value to Saturation
-               //// Cleaner.Unrotate = true;
-               // var newImage1 = Cleaner.Execute(image);
-               // //newImage1.CannyEdge(); selcet the inner objects in the image 
+               //Cleaner.FilterSize = 12; // filter to clean up background;
+               //Cleaner.FilterOffset = (Percentage)3; //filter in percent to reduce noise
+               //Cleaner.Saturation = (Percentage)200;  // high value to Saturation
+               //Cleaner.Unrotate = true;
+               var newImage1 = Cleaner.Execute(image);
+               newImage1.CannyEdge(); //selcet the inner objects in the image 
                 
-               // newImage1.Density = new PointD(600, 600);
-               // newImage1.Write(EnhancedImageDir + Path.GetFileName(ImageDirectory)
-               //     + ".tif");
+               newImage1.Density = new Density(600, 600);
+               newImage1.Write(EnhancedImageDir + Path.GetFileName(ImageDirectory)
+                   + ".tif");
 
                 AutotrimScript WhiteB = new AutotrimScript();
-               // WhiteB.InnerTrim = true;
+               WhiteB.InnerTrim = true;
                 var a = WhiteB.GetLargestAreaP(image);
                 
                 WhiteboardScript AoutoTrim = new WhiteboardScript();
-                //AoutoTrim.SetCoordinates(new PointD(01, 53), new PointD(313, 31),
-                //new PointD(331, 218), new PointD(218, 200));
-                //AoutoTrim.Enhance = WhiteboardEnhancements.Both;
-                //AoutoTrim.FilterSize = 25; // filter to clean up background;
-                //AoutoTrim.FilterOffset = (Percentage)3; //filter in percent to reduce noise
-                //AoutoTrim.Saturation = (Percentage)200;  // high value to Saturation
-                //AoutoTrim.SetCoordinates(new PointD(a[0].X, a[0].Y), new PointD(a[1].X, a[1].Y),
-                //new PointD(a[2].X, a[2].Y), new PointD(a[3].X, a[3].Y));
+                //AoutoTrim.SetPointDs(new PointD(01, 53), new PointD(313, 31), new PointD(331, 218), new PointD(218, 200));
+                AoutoTrim.Enhance = WhiteboardEnhancements.Both;
+                AoutoTrim.FilterSize = 25; // filter to clean up background;
+                AoutoTrim.FilterOffset = (Percentage)3; //filter in percent to reduce noise
+                AoutoTrim.Saturation = (Percentage)200;  // high value to Saturation
+                AoutoTrim.SetPointDs(new PointD(a[0].X, a[0].Y), new PointD(a[1].X, a[1].Y), new PointD(a[2].X, a[2].Y), new PointD(a[3].X, a[3].Y));
                 var new2mage2 = AoutoTrim.Execute(image);
-              //  new2mage2.Deskew((Percentage)2);
-                AoutoTrim.SetPointDs(new PointD(13, 3), new PointD(342, 6),
-                new PointD(331, 467), new PointD(38, 482));
+                new2mage2.Deskew((Percentage)2);
+                //AoutoTrim.SetPointDs(new PointD(13, 3), new PointD(342, 6),
+                //new PointD(331, 467), new PointD(38, 482));
                 AoutoTrim.Enhance = WhiteboardEnhancements.Both;
              
                
-             //  new2mage2.Density= new PointD(300, 300);
+                new2mage2.Density= new Density(300, 300);
 				new2mage2= WhiteB.Execute(new2mage2);
                 new2mage2= Cleaner.Execute(new2mage2);
                 
-                new2mage2.Density = new Density(600, 600);
+                //new2mage2.Density = new Density(600, 600);
                 new2mage2.Write(EnhancedImageDir + Path.GetFileName(ImageDirectory)
                     + "2" + ".tif");
                 string dir12 = (EnhancedImageDir + Path.GetFileName(ImageDirectory)
@@ -101,14 +103,14 @@ namespace OCRApp
                 WhiteB.BorderColorLocation = new PointD(10, 10);
                 
                
-                //AoutoTrim.SetCoordinates(ad);
+                //AoutoTrim.SetPointDs(ad);
                 
-                //WhiteB.ColorFuzz = (Percentage)20;
-                //var new2mage3 = WhiteB.Execute(image);
-                //new2mage3 = Cleaner.Execute(new2mage3);
+                WhiteB.ColorFuzz = (Percentage)20;
+                var new2mage3 = WhiteB.Execute(image);
+                new2mage3 = Cleaner.Execute(new2mage3);
 
-                //new2mage3.Write(EnhancedImageDir + Path.GetFileName(ImageDirectory)
-                //    + "3" + ".tif");
+                new2mage3.Write(EnhancedImageDir + Path.GetFileName(ImageDirectory)
+                    + "3" + ".tif");
             }
 
         }

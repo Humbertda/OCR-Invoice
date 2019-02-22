@@ -119,7 +119,9 @@
     <Compile Include="Samples\Magick.NET\LosslessCompression.cs" />
     <Compile Include="Samples\Magick.NET\MagickScript.cs" />
     <Compile Include="Samples\Magick.NET\ReadImage.cs" />
-    <Compile Include="Samples\Magick.NET\ReadRawImageFromCamera.cs" />
+    <Compile Include="Samples\Magick.NET\ReadRawImageFromCamera.cs">
+      <DependentUpon>Watermark.cs</DependentUpon>
+    </Compile>
     <Compile Include="Samples\Magick.NET\ResizeImage.cs" />
     <Compile Include="Samples\Magick.NET\UsingColors.cs" />
     <Compile Include="Samples\Magick.NET\Watermark.cs" />

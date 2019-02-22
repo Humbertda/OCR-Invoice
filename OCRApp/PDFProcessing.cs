@@ -28,11 +28,8 @@ namespace OCRApp
                 Console.WriteLine("PDF  file '{0}'.", fileName);
                 using (MagickImageCollection images = new MagickImageCollection())
                 {
-
-                   
-
                     // Add all the pages of the pdf file to the collection
-                    images.Read(string.Format(fileName), settings);
+                    images.Read(fileName, settings);
                     images.Write(dr2 + Path.GetFileName(fileName)
                         + ".jpg");
 

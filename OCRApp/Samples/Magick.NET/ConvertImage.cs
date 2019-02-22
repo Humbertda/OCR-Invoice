@@ -59,7 +59,7 @@ namespace OCRApp.Samples.MagickNET
     {
       // Uses sRGB.icm, eps/pdf produce better result when you set this before loading.
       MagickReadSettings settings = new MagickReadSettings();
-      settings.ColorSpace = ColorSpace.sRGB;
+      settings.ColorSpace = ColorSpace.LinearGray;
 
       // Create empty image
       using (MagickImage image = new MagickImage())

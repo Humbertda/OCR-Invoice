@@ -255,10 +255,11 @@ namespace OCRApp.Autotrim
             image.ColorFuzz = ColorFuzz;
             image.Trim();
             image.RePage();
+            image.Resize(image.Width, image.Height);
 
-            MagickGeometry geometry = new MagickGeometry(0, 0, image.Width, image.Height);
-            ShiftGeometry(geometry);
-            Crop(image, geometry);
+            //MagickGeometry geometry = new MagickGeometry(0, 0, image.Width, image.Height);
+            //ShiftGeometry(geometry);
+            //Crop(image, geometry);
         }
 
         private bool IsBorderColor(IPixelCollection pixels, int x, int y)

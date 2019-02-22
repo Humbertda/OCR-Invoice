@@ -22,7 +22,7 @@ namespace OCRApp
                
                 //Console.WriteLine(Path.GetFileName(fileName));// used to get only file name
                // PerformingOCR.DoOCR1(fileName);
-                ImagePreProcessing.EnhanceImageQuality(fileName.ToString());
+                ImagePreProcessing.EnhanceImageQuality(fileName);
                 // Console.ReadLine();
             }
              fileEntries = Directory.GetFiles(@"C:\OCR\EnhancedImage", "*.*", SearchOption.AllDirectories)

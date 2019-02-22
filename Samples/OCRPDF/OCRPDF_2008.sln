@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OCRPDF_2008", "OCRPDF_2008.csproj", "{879F77D8-4072-4126-B3C3-1A9A46671109}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{879F77D8-4072-4126-B3C3-1A9A46671109}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{879F77D8-4072-4126-B3C3-1A9A46671109}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{879F77D8-4072-4126-B3C3-1A9A46671109}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{879F77D8-4072-4126-B3C3-1A9A46671109}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
